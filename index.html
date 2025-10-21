@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Age & Age Gap Calculator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(to right, #2193b0, #6dd5ed);
+      color: #fff;
+      text-align: center;
+      transition: background 0.5s, color 0.5s;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    .section {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    input[type="date"] {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ffffff;
+      color: #2193b0;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #e0f7ff;
+    }
+    .result {
+      margin-top: 15px;
+      font-size: 18px;
+    }
+    #liveAge {
+      font-size: 20px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .dark {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #eee;
+    }
+    .dark .section {
+      background: rgba(0, 0, 0, 0.3);
+    }
+    .dark button {
+      background-color: #333;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎂 Age & Age Gap Calculator</h1>
+  <button onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+
+  <div class="section">
+    <h2>Calculate Your Age</h2>
+    <input type="date" id="dob" />
+    <br>
+    <button onclick="calculateAge()">Calculate Age</button>
+    <button onclick="resetAge()">Reset</button>
+    <div class="result" id="ageResult"></div>
+    <div id="liveAge"></div>
+  </div>
+
+  <div class="section">
+    <h2>Calculate Age Gap</h2>
+    <input type="date" id="dob1" placeholder="Person 1 DOB" />
+    <input type="date" id="dob2" placeholder="Person 2 DOB" />
+    <br>
+    <button onclick="calculateGap()">Calculate Gap</button>
+    <button onclick="resetGap()">Reset</button>
+    <div class="result" id="gapResult"></div>
+  </div>
+
+  <script>
+    let ageInterval;
+
+    function calculateAge() {
+      const dob = new Date(document.getElementById('dob').value);
+      if (isNaN(dob)) return;
+
+      updateLiveAge(dob);
+      ageInterval = setInterval(() => updateLiveAge(dob), 1000);
+    }
+
+    function updateLiveAge(dob) {
+      const now = new Date();
+      let years = now.getFullYear() - dob.getFullYear();
+      let months = now.getMonth() - dob.getMonth();
+      let days = now.getDate() - dob.getDate();
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      let seconds = now.getSeconds();
+
+      if (days < 0) {
+        months--;
+        days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+      }
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+
+      const zodiac = getZodiacSign(dob);
+      const nextBirthday = new Date(now.getFullYear(), dob.getMonth(), dob.getDate());
+      if (nextBirthday < now) nextBirthday.setFullYear(now.getFullYear() + 1);
+      const diffMs = nextBirthday - now;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      const ageText = `You are ${years} years, ${months} months, and ${days} days old. Your zodiac sign is ${zodiac}. ${diffDays} days until your next birthday.`;
+      document.getElementById('ageResult').textContent = ageText;
+      document.getElementById('liveAge').textContent = `Live Time: ${hours}h ${minutes}m ${seconds}s`;
+      speak(ageText);
+    }
+
+    function resetAge() {
+      clearInterval(ageInterval);
+      document.getElementById('dob').value = '';
+      document.getElementById('ageResult').textContent = '';
+      document.getElementById('liveAge').textContent = '';
+    }
+
+    function calculateGap() {
+      const dob1 = new Date(document.getElementById('dob1').value);
+      const dob2 = new Date(document.getElementById('dob2').value);
+      if (isNaN(dob1) || isNaN(dob2)) return;
+
+      let diff = Math.abs(dob1 - dob2);
+      let gapDate = new Date(diff);
+
+      let years = gapDate.getUTCFullYear() - 1970;
+      let months = gapDate.getUTCMonth();
+      let days = gapDate.getUTCDate() - 1;
+
+      const gapText = `Age gap is ${years} years, ${months} months, and ${days} days.`;
+      document.getElementById('gapResult').textContent = gapText;
+      speak(gapText);
+    }
+
+    function resetGap() {
+      document.getElementById('dob1').value = '';
+      document.getElementById('dob2').value = '';
+      document.getElementById('gapResult').textContent = '';
+    }
+
+    function getZodiacSign(date) {
+      const day = date.getDate();
+      const month = date.getMonth() + 1;
+      const signs = [
+        ["Capricorn", 20], ["Aquarius", 19], ["Pisces", 20], ["Aries", 20],
+        ["Taurus", 21], ["Gemini", 21], ["Cancer", 22], ["Leo", 22],
+        ["Virgo", 22], ["Libra", 22], ["Scorpio", 21], ["Sagittarius", 21], ["Capricorn", 31]
+      ];
+      return day < signs[month - 1][1] ? signs[month - 1][0] : signs[month][0];
+    }
+
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+    }
+  </script>
+</body>
+</html>
